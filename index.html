@@ -20,14 +20,20 @@
     </div>
     <div class="form-group">
         <label for="ageGroup">Age Group:</label>
-        <select id="ageGroup" onchange="populateEvents()">
+        <select id="ageGroup" onchange="populateEventTypes()">
             <option value="">Select Age Group</option>
         </select>
     </div>
     <div class="form-group">
-        <label for="event">Event:</label>
-        <select id="event">
-            <option value="">Select Event</option>
+        <label for="eventType">Event Type:</label>
+        <select id="eventType" onchange="populateDistances()">
+            <option value="">Select Event Type</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="distance">Distance:</label>
+        <select id="distance">
+            <option value="">Select Distance</option>
         </select>
     </div>
     <div class="form-group">

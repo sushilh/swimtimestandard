@@ -23,18 +23,35 @@ function populateAgeGroups() {
     }
 }
 
-function populateEvents() {
+function populateEventTypes() {
     const gender = document.getElementById('gender').value;
     const ageGroup = document.getElementById('ageGroup').value;
-    const eventSelect = document.getElementById('event');
-    eventSelect.innerHTML = '<option value="">Select Event</option>';
+    const eventTypeSelect = document.getElementById('eventType');
+    eventTypeSelect.innerHTML = '<option value="">Select Event Type</option>';
 
     if (gender && ageGroup && swimmingData[gender][ageGroup]) {
-        Object.keys(swimmingData[gender][ageGroup]).forEach(event => {
+        Object.keys(swimmingData[gender][ageGroup]).forEach(eventType => {
             const option = document.createElement('option');
-            option.value = event;
-            option.textContent = event;
-            eventSelect.appendChild(option);
+            option.value = eventType;
+            option.textContent = eventType;
+            eventTypeSelect.appendChild(option);
+        });
+    }
+}
+
+function populateDistances() {
+    const gender = document.getElementById('gender').value;
+    const ageGroup = document.getElementById('ageGroup').value;
+    const eventType = document.getElementById('eventType').value;
+    const distanceSelect = document.getElementById('distance');
+    distanceSelect.innerHTML = '<option value="">Select Distance</option>';
+
+    if (gender && ageGroup && eventType && swimmingData[gender][ageGroup][eventType]) {
+        Object.keys(swimmingData[gender][ageGroup][eventType]).forEach(distance => {
+            const option = document.createElement('option');
+            option.value = distance;
+            option.textContent = `${distance} Y`;
+            distanceSelect.appendChild(option);
         });
     }
 }
@@ -54,20 +71,22 @@ function convertTimeToSeconds(timeStr) {
 function checkStandard() {
     const gender = document.getElementById('gender').value;
     const ageGroup = document.getElementById('ageGroup').value;
-    const event = document.getElementById('event').value;
+    const eventType = document.getElementById('eventType').value;
+    const distance = document.getElementById('distance').value;
     const userTimeStr = document.getElementById('time').value.trim();
 
-    if (!userTimeStr || !gender || !ageGroup || !event) {
+    if (!userTimeStr || !gender || !ageGroup || !eventType || !distance) {
         document.getElementById('result').innerText = "Please fill in all fields.";
         return;
     }
 
     const userTimeSeconds = convertTimeToSeconds(userTimeStr);
-    const standards = swimmingData[gender][ageGroup][event];
+    const standards = swimmingData[gender][ageGroup][eventType][distance];
 
     const standardOrder = ["AAAA", "AAA", "AA", "A", "BB", "B"];
     let achievedStandard = "No standard achieved";
     let nextStandard = null;
+    let secondsToNext = null;
 
     const times = [];
     const labels = [];
@@ -80,6 +99,10 @@ function checkStandard() {
         if (userTimeSeconds <= standardTimeSeconds) {
             achievedStandard = `Achieved ${standard} standard`;
             nextStandard = i > 0 ? standardOrder[i - 1] : null;
+            if (nextStandard) {
+                const nextStandardTimeSeconds = convertTimeToSeconds(standards[nextStandard]);
+                secondsToNext = nextStandardTimeSeconds - userTimeSeconds;
+            }
             break;
         }
 
@@ -97,18 +120,29 @@ function checkStandard() {
     let result = `${achievedStandard}`;
     if (nextStandard) {
         result += `. Next standard to achieve is ${nextStandard}`;
+        if (secondsToNext !== null) {
+            result += `, ${secondsToNext.toFixed(2)} seconds away.`;
+        }
     }
 
     document.getElementById('result').innerText = result;
 
     plotGraph(times, labels, userTimeSeconds);
 }
-
 function plotGraph(times, labels, userTime) {
     const ctx = document.getElementById('standardChart').getContext('2d');
 
     if (chartInstance) {
         chartInstance.destroy();
+    }
+
+    // Determine the color of the dot based on whether the user's time is within any standard
+    let dotColor = '#ff0000'; // Default to red (meaning not achieved)
+    for (let i = 0; i < times.length; i++) {
+        if (userTime <= times[i]) {
+            dotColor = '#00ff00'; // Change to green if the user achieves any standard
+            break;
+        }
     }
 
     chartInstance = new Chart(ctx, {
@@ -123,8 +157,8 @@ function plotGraph(times, labels, userTime) {
             }, {
                 label: 'Your Time',
                 data: [{x: labels[0], y: userTime}], // Place the dot at the beginning
-                borderColor: '#ff0000',
-                backgroundColor: '#ff0000',
+                borderColor: dotColor,
+                backgroundColor: dotColor,
                 type: 'scatter',
                 pointRadius: 5,
                 pointHoverRadius: 7
@@ -153,3 +187,5 @@ function plotGraph(times, labels, userTime) {
         }
     });
 }
+
+
