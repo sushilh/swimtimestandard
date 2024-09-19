@@ -136,14 +136,17 @@ function plotGraph(times, labels, userTime) {
         chartInstance.destroy();
     }
 
-    // Determine the color of the dot based on whether the user's time is within any standard
-    let dotColor = '#ff0000'; // Default to red (meaning not achieved)
+    // Determine the color of the line based on whether the user's time is within any standard
+    let lineColor = '#ff0000'; // Default to red (meaning not achieved)
     for (let i = 0; i < times.length; i++) {
         if (userTime <= times[i]) {
-            dotColor = '#00ff00'; // Change to green if the user achieves any standard
+            lineColor = '#00ff00'; // Change to green if the user achieves any standard
             break;
         }
     }
+
+    // Create an array with the same length as labels for the user's time line
+    const userTimeLine = Array(labels.length).fill(userTime);
 
     chartInstance = new Chart(ctx, {
         type: 'line',
@@ -156,19 +159,20 @@ function plotGraph(times, labels, userTime) {
                 fill: false
             }, {
                 label: 'Your Time',
-                data: [{x: labels[0], y: userTime}], // Place the dot at the beginning
-                borderColor: dotColor,
-                backgroundColor: dotColor,
-                type: 'scatter',
-                pointRadius: 5,
-                pointHoverRadius: 7
+                data: userTimeLine, // Draw a line for the user's performance
+                borderColor: lineColor,
+                backgroundColor: lineColor,
+                pointRadius: 0, // Hide points on the line
+                fill: false, // No fill under the line
+                borderWidth: 2,
             }]
         },
         options: {
             scales: {
                 y: {
                     beginAtZero: true,
-                    reverse: true,
+                    min: 0,
+                    reverse: false,
                     ticks: {
                         stepSize: 30,
                         callback: function(value) {
@@ -187,5 +191,3 @@ function plotGraph(times, labels, userTime) {
         }
     });
 }
-
-
