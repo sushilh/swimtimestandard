@@ -238,4 +238,7 @@ function plotGraph(standards, standardOrder, userTime) {
             }
         }
     });
+
+    // Scroll to top after chart is loaded
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
