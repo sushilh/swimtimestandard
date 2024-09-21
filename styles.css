@@ -1,6 +1,6 @@
 body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    background: linear-gradient(135deg, #f7f9fb, #dfe9f3); /* Gradient background for visual interest */
+    background: linear-gradient(135deg, #f7f9fb, #dfe9f3);
     color: #333;
     margin: 0;
     padding: 0;
@@ -8,17 +8,17 @@ body {
     flex-direction: column;
     align-items: center;
     height: 100vh;
-    justify-content: center; /* Center the container vertically */
+    justify-content: center;
 }
 
 .container {
     width: 90%;
     max-width: 600px;
-    background-color: rgba(255, 255, 255, 0.3); /* Increased transparency */
+    background-color: rgba(255, 255, 255, 0.3);
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-    backdrop-filter: blur(10px); /* Add blur effect */
+    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.18);
 }
@@ -50,14 +50,14 @@ input, select, button {
     font-size: 16px;
     margin-bottom: 10px;
     transition: border-color 0.3s, box-shadow 0.3s;
-    background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent input background */
+    background-color: rgba(255, 255, 255, 0.6);
     color: #333;
 }
 
 input:focus, select:focus {
     border-color: #7D2248;
     outline: none;
-    box-shadow: 0 0 5px rgba(125, 34, 72, 0.5); /* Soft glow effect on focus */
+    box-shadow: 0 0 5px rgba(125, 34, 72, 0.5);
 }
 
 button {
@@ -87,7 +87,7 @@ button:active {
     text-align: center;
     padding: 10px;
     border-radius: 5px;
-    background-color: rgba(233, 236, 239, 0.8); /* Semi-transparent result background */
+    background-color: rgba(233, 236, 239, 0.8);
     color: #333;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -96,4 +96,51 @@ button:active {
     width: 100%;
     max-width: 600px;
     margin-top: 20px;
+}
+
+#standardsContainer {
+    margin-top: 20px;
+}
+
+#standardsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#standardsTable th,
+#standardsTable td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+#standardsTable th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+#standardsTable td.achieved {
+    background-color: #c8e6c9;
+    color: #1b5e20;
+}
+
+#standardsTable td.next {
+    background-color: #fff9c4;
+    color: #8d6e63;
+}
+
+#standardsTable td.animate {
+    animation: pulse 1s;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
 }

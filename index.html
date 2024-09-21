@@ -9,13 +9,13 @@
 <body>
 
 <div class="container">
-    <h1>Check Swimming Standard</h1>
+    <h1>2022-2024 Motivational Times- <b>SCY</b></h1>
     <div class="form-group">
         <label for="gender">Gender:</label>
         <select id="gender" onchange="populateAgeGroups()">
             <option value="">Select Gender</option>
-            <option value="boys">Boys</option>
-            <option value="girls">Girls</option>
+            <option value="Girls">Girls</option>
+            <option value="Boys">Boys</option>
         </select>
     </div>
     <div class="form-group">
@@ -26,14 +26,8 @@
     </div>
     <div class="form-group">
         <label for="eventType">Event Type:</label>
-        <select id="eventType" onchange="populateDistances()">
+        <select id="eventType" onchange="showStandards()">
             <option value="">Select Event Type</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="distance">Distance:</label>
-        <select id="distance">
-            <option value="">Select Distance</option>
         </select>
     </div>
     <div class="form-group">
@@ -43,6 +37,25 @@
     <button onclick="checkStandard()">Check Standard</button>
 
     <div id="result"></div>
+
+    <div id="standardsContainer">
+        <h3>Time Standards</h3>
+        <table id="standardsTable">
+            <thead>
+            <tr>
+                <th>AAAA</th>
+                <th>AAA</th>
+                <th>AA</th>
+                <th>A</th>
+                <th>BB</th>
+                <th>B</th>
+
+
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
 <div id="chartContainer">

@@ -1,10 +1,10 @@
 let swimmingData;
 let chartInstance;
 
-fetch('age_groups.json')
+fetch('new_age_group.json')
     .then(response => response.json())
     .then(data => {
-        swimmingData = data;
+        swimmingData = data.standards;
     })
     .catch(error => console.error('Error loading JSON:', error));
 
@@ -13,8 +13,15 @@ function populateAgeGroups() {
     const ageGroupSelect = document.getElementById('ageGroup');
     ageGroupSelect.innerHTML = '<option value="">Select Age Group</option>';
 
-    if (gender && swimmingData[gender]) {
-        Object.keys(swimmingData[gender]).forEach(ageGroup => {
+    if (gender) {
+        const ageGroups = new Set();
+        swimmingData.forEach(item => {
+            if (item.gender === gender) {
+                ageGroups.add(item.age_group);
+            }
+        });
+
+        ageGroups.forEach(ageGroup => {
             const option = document.createElement('option');
             option.value = ageGroup;
             option.textContent = ageGroup;
@@ -29,8 +36,17 @@ function populateEventTypes() {
     const eventTypeSelect = document.getElementById('eventType');
     eventTypeSelect.innerHTML = '<option value="">Select Event Type</option>';
 
-    if (gender && ageGroup && swimmingData[gender][ageGroup]) {
-        Object.keys(swimmingData[gender][ageGroup]).forEach(eventType => {
+    if (gender && ageGroup) {
+        const eventTypes = new Set();
+        swimmingData.forEach(item => {
+            if (item.gender === gender && item.age_group === ageGroup) {
+                item.events.forEach(event => {
+                    eventTypes.add(event.event);
+                });
+            }
+        });
+
+        eventTypes.forEach(eventType => {
             const option = document.createElement('option');
             option.value = eventType;
             option.textContent = eventType;
@@ -39,20 +55,35 @@ function populateEventTypes() {
     }
 }
 
-function populateDistances() {
+function showStandards() {
     const gender = document.getElementById('gender').value;
     const ageGroup = document.getElementById('ageGroup').value;
     const eventType = document.getElementById('eventType').value;
-    const distanceSelect = document.getElementById('distance');
-    distanceSelect.innerHTML = '<option value="">Select Distance</option>';
+    const standardsTableBody = document.getElementById('standardsTable').getElementsByTagName('tbody')[0];
+    standardsTableBody.innerHTML = '';
 
-    if (gender && ageGroup && eventType && swimmingData[gender][ageGroup][eventType]) {
-        Object.keys(swimmingData[gender][ageGroup][eventType]).forEach(distance => {
-            const option = document.createElement('option');
-            option.value = distance;
-            option.textContent = `${distance} Y`;
-            distanceSelect.appendChild(option);
+    if (gender && ageGroup && eventType) {
+        let standards;
+        swimmingData.forEach(item => {
+            if (item.gender === gender && item.age_group === ageGroup) {
+                item.events.forEach(event => {
+                    if (event.event === eventType) {
+                        standards = event.times;
+                    }
+                });
+            }
         });
+
+        if (standards) {
+            const row = document.createElement('tr');
+            const standardOrder = ["AAAA", "AAA", "AA", "A", "BB", "B"];
+            standardOrder.forEach((standard) => {
+                const cell = document.createElement('td');
+                cell.textContent = standards[standard];
+                row.appendChild(cell);
+            });
+            standardsTableBody.appendChild(row);
+        }
     }
 }
 
@@ -72,24 +103,35 @@ function checkStandard() {
     const gender = document.getElementById('gender').value;
     const ageGroup = document.getElementById('ageGroup').value;
     const eventType = document.getElementById('eventType').value;
-    const distance = document.getElementById('distance').value;
     const userTimeStr = document.getElementById('time').value.trim();
 
-    if (!userTimeStr || !gender || !ageGroup || !eventType || !distance) {
+    if (!userTimeStr || !gender || !ageGroup || !eventType) {
         document.getElementById('result').innerText = "Please fill in all fields.";
         return;
     }
 
     const userTimeSeconds = convertTimeToSeconds(userTimeStr);
-    const standards = swimmingData[gender][ageGroup][eventType][distance];
+    let standards = null;
+
+    swimmingData.forEach(item => {
+        if (item.gender === gender && item.age_group === ageGroup) {
+            item.events.forEach(event => {
+                if (event.event === eventType) {
+                    standards = event.times;
+                }
+            });
+        }
+    });
+
+    if (!standards) {
+        document.getElementById('result').innerText = "Standards not found.";
+        return;
+    }
 
     const standardOrder = ["AAAA", "AAA", "AA", "A", "BB", "B"];
     let achievedStandard = "No standard achieved";
     let nextStandard = null;
     let secondsToNext = null;
-
-    const times = [];
-    const labels = [];
 
     for (let i = 0; i < standardOrder.length; i++) {
         const standard = standardOrder[i];
@@ -97,7 +139,7 @@ function checkStandard() {
         const standardTimeSeconds = convertTimeToSeconds(standardTimeStr);
 
         if (userTimeSeconds <= standardTimeSeconds) {
-            achievedStandard = `Achieved ${standard} standard`;
+            achievedStandard = standard;
             nextStandard = i > 0 ? standardOrder[i - 1] : null;
             if (nextStandard) {
                 const nextStandardTimeSeconds = convertTimeToSeconds(standards[nextStandard]);
@@ -105,47 +147,53 @@ function checkStandard() {
             }
             break;
         }
-
-        nextStandard = standard;
     }
 
-    for (let i = 0; i < standardOrder.length; i++) {
-        const standard = standardOrder[i];
-        const standardTimeStr = standards[standard];
-        const seconds = convertTimeToSeconds(standardTimeStr);
-        times.push(seconds);
-        labels.push(standard);
-    }
-
-    let result = `${achievedStandard}`;
+    let result = `Achieved ${achievedStandard} standard`;
     if (nextStandard) {
-        result += `. Next standard to achieve is ${nextStandard}`;
-        if (secondsToNext !== null) {
-            result += `, ${secondsToNext.toFixed(2)} seconds away.`;
-        }
+        result += `. Next standard to achieve is ${nextStandard}, ${Math.abs(secondsToNext).toFixed(2)} seconds away.`;
     }
 
     document.getElementById('result').innerText = result;
 
-    plotGraph(times, labels, userTimeSeconds);
+    // Highlight the achieved and next standards
+    highlightStandards(achievedStandard, nextStandard);
+
+    plotGraph(standards, standardOrder, userTimeSeconds);
 }
-function plotGraph(times, labels, userTime) {
+
+function highlightStandards(achievedStandard, nextStandard) {
+    const standardOrder = ["AAAA", "AAA", "AA", "A", "BB", "B"];
+    const standardCells = document.querySelectorAll('#standardsTable td');
+
+    standardCells.forEach((cell, index) => {
+        cell.classList.remove('achieved', 'next');
+        if (standardOrder[index] === achievedStandard) {
+            cell.classList.add('achieved');
+        }
+        if (standardOrder[index] === nextStandard) {
+            cell.classList.add('next');
+        }
+    });
+}
+
+function plotGraph(standards, standardOrder, userTime) {
     const ctx = document.getElementById('standardChart').getContext('2d');
+    const times = standardOrder.map(standard => convertTimeToSeconds(standards[standard]));
+    const labels = standardOrder;
 
     if (chartInstance) {
         chartInstance.destroy();
     }
 
-    // Determine the color of the line based on whether the user's time is within any standard
-    let lineColor = '#ff0000'; // Default to red (meaning not achieved)
+    let lineColor = '#ff0000';
     for (let i = 0; i < times.length; i++) {
         if (userTime <= times[i]) {
-            lineColor = '#00ff00'; // Change to green if the user achieves any standard
+            lineColor = '#00ff00';
             break;
         }
     }
 
-    // Create an array with the same length as labels for the user's time line
     const userTimeLine = Array(labels.length).fill(userTime);
 
     chartInstance = new Chart(ctx, {
@@ -159,11 +207,11 @@ function plotGraph(times, labels, userTime) {
                 fill: false
             }, {
                 label: 'Your Time',
-                data: userTimeLine, // Draw a line for the user's performance
+                data: userTimeLine,
                 borderColor: lineColor,
                 backgroundColor: lineColor,
-                pointRadius: 0, // Hide points on the line
-                fill: false, // No fill under the line
+                pointRadius: 0,
+                fill: false,
                 borderWidth: 2,
             }]
         },
@@ -172,7 +220,7 @@ function plotGraph(times, labels, userTime) {
                 y: {
                     beginAtZero: true,
                     min: 0,
-                    reverse: false,
+                    reverse: true,
                     ticks: {
                         stepSize: 30,
                         callback: function(value) {
